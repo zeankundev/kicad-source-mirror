@@ -1,100 +1,133 @@
 ##########################################################################
 # Build KiCad on Ubuntu 20.04 and save the results
 ##########################################################################
-.ubuntu20.04_build:
-  stage: build
-  tags:
-    - kicad-ubuntu20.04
-  image: registry.gitlab.com/kicad/kicad-ci/source_containers/master/ubuntu:20.04
-  only:
-    - branches@kicad/code/kicad
-    - tags@kicad/code/kicad
-  except:
-    - schedules
-  interruptible: false
-  cache:
-    key: "cache-ubuntu20.04-linux"
-    paths:
-      - ccache/
-  before_script:
-    # CCache Config
-    - mkdir -p ccache
-    - export CCACHE_BASEDIR=${PWD}
-    - export CCACHE_DIR=${PWD}/ccache
-  script:
-    - mkdir -p build/linux
-    - cd build/linux
-    - cmake
-      -G Ninja
-      -DCMAKE_C_COMPILER_LAUNCHER=ccache
-      -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-      -DCMAKE_BUILD_TYPE=Release
-      -DKICAD_STDLIB_LIGHT_DEBUG=ON
-      -DKICAD_USE_OCC=ON
-      -DKICAD_BUILD_I18N=ON
-      -DKICAD_BUILD_PNS_DEBUG_TOOL=ON
-      ../../
-    - ninja 2>&1 | tee compilation_log.txt
-    - cd ../../
-    # Create a directory structure for binaries
-    - mkdir -p kicad-binaries/bin
-    - mkdir -p kicad-binaries/lib
-    - mkdir -p kicad-binaries/3d-viewer
-    - mkdir -p kicad-binaries/fonts
-    # Collect all application binaries and shared libraries
-    - |
-      for app in pcbnew eeschema kicad cvpcb gerbview kicad2step; do
-        if [ -f "build/linux/bin/$app" ]; then
-          cp "build/linux/bin/$app" kicad-binaries/bin/
-        fi
-        if [ -f "build/linux/$app/_$app.kiface" ]; then
-          cp "build/linux/$app/_$app.kiface" kicad-binaries/bin/
-        fi
-        if [ -f "build/linux/$app/_$app.so" ]; then
-          cp "build/linux/$app/_$app.so" kicad-binaries/bin/
-        fi
-      done
-    # Copy shared libraries and dependencies
-    - |
-      if [ -d "build/linux/3d-viewer" ]; then
-        cp -r build/linux/3d-viewer/* kicad-binaries/3d-viewer/ 2>/dev/null || true
-      fi
-      if [ -d "build/linux/libwmf/fonts" ]; then
-        cp -r build/linux/libwmf/fonts/* kicad-binaries/fonts/ 2>/dev/null || true
-      fi
-    # Create version info file
-    - |
-      cat > kicad-binaries/BUILD_INFO.txt << EOF
-      KiCad Build Information
-      ======================
-      Build Date: $(date)
-      Git Commit: ${CI_COMMIT_SHA:0:8}
-      Build Type: Release
-      Ubuntu Version: 20.04
-      
-      Contents:
-      - pcbnew: PCB design tool
-      - eeschema: Schematic editor
-      - kicad: Project manager
-      - cvpcb: Component footprint selector
-      - gerbview: Gerber file viewer
-      - kicad2step: STEP file converter
-      
-      Included Libraries:
-      - 3D Viewer resources
-      - WMF fonts
-      EOF
-    # Create the zip archive
-    - cd kicad-binaries && zip -r ../kicad-binaries-ubuntu20.04-$(date +%Y%m%d-%H%M%S).zip . && cd ..
-  artifacts:
-    # Save the zip file for long-term storage and distribution
-    expire_in: 30 days
-    name: "kicad-binaries-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - kicad-binaries-ubuntu20.04-*.zip
-      - build/linux/compilation_log.txt
-      - build/linux/qa/
-    exclude:
-      - build/linux/**/*.o
-      - build/linux/**/*.a
-    when: always
+name: Ubuntu 20.04 Build
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  ubuntu-20-04-build:
+    runs-on: ubuntu-20.04
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build ccache
+
+      - name: Create ccache directory
+        run: mkdir -p ccache
+
+      - name: Setup ccache
+        uses: actions/cache@v3
+        with:
+          path: ccache/
+          key: cache-ubuntu20.04-linux-${{ github.sha }}
+          restore-keys: cache-ubuntu20.04-linux-
+
+      - name: Configure ccache environment
+        run: |
+          export CCACHE_BASEDIR=${PWD}
+          export CCACHE_DIR=${PWD}/ccache
+          echo "CCACHE_BASEDIR=${PWD}" >> $GITHUB_ENV
+          echo "CCACHE_DIR=${PWD}/ccache" >> $GITHUB_ENV
+
+      - name: Configure CMake
+        run: |
+          mkdir -p build/linux
+          cd build/linux
+          cmake \
+            -G Ninja \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DKICAD_STDLIB_LIGHT_DEBUG=ON \
+            -DKICAD_USE_OCC=ON \
+            -DKICAD_BUILD_I18N=ON \
+            -DKICAD_BUILD_PNS_DEBUG_TOOL=ON \
+            ../../
+
+      - name: Build with Ninja
+        run: |
+          cd build/linux
+          ninja 2>&1 | tee compilation_log.txt
+
+      - name: Create binary directory structure
+        run: |
+          mkdir -p kicad-binaries/bin
+          mkdir -p kicad-binaries/lib
+          mkdir -p kicad-binaries/3d-viewer
+          mkdir -p kicad-binaries/fonts
+
+      - name: Collect application binaries
+        run: |
+          for app in pcbnew eeschema kicad cvpcb gerbview kicad2step; do
+            if [ -f "build/linux/bin/$app" ]; then
+              cp "build/linux/bin/$app" kicad-binaries/bin/
+            fi
+            if [ -f "build/linux/$app/_$app.kiface" ]; then
+              cp "build/linux/$app/_$app.kiface" kicad-binaries/bin/
+            fi
+            if [ -f "build/linux/$app/_$app.so" ]; then
+              cp "build/linux/$app/_$app.so" kicad-binaries/bin/
+            fi
+          done
+
+      - name: Copy shared libraries and resources
+        run: |
+          if [ -d "build/linux/3d-viewer" ]; then
+            cp -r build/linux/3d-viewer/* kicad-binaries/3d-viewer/ 2>/dev/null || true
+          fi
+          if [ -d "build/linux/libwmf/fonts" ]; then
+            cp -r build/linux/libwmf/fonts/* kicad-binaries/fonts/ 2>/dev/null || true
+          fi
+
+      - name: Create build info file
+        run: |
+          cat > kicad-binaries/BUILD_INFO.txt << 'EOF'
+          KiCad Build Information
+          ======================
+          Build Date: $(date)
+          Git Commit: ${{ github.sha }}
+          Build Type: Release
+          Ubuntu Version: 20.04
+          Contents:
+          - pcbnew: PCB design tool
+          - eeschema: Schematic editor
+          - kicad: Project manager
+          - cvpcb: Component footprint selector
+          - gerbview: Gerber file viewer
+          - kicad2step: STEP file converter
+          Included Libraries:
+          - 3D Viewer resources
+          - WMF fonts
+          EOF
+
+      - name: Create archive
+        run: |
+          cd kicad-binaries
+          zip -r ../kicad-binaries-ubuntu20.04-${{ github.run_number }}.zip .
+          cd ..
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: kicad-binaries-${{ github.sha }}
+          path: |
+            kicad-binaries-ubuntu20.04-*.zip
+            build/linux/compilation_log.txt
+            build/linux/qa/
+          retention-days: 30
+          if-no-files-found: ignore
