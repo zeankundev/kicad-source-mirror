@@ -36,24 +36,72 @@
       ../../
     - ninja 2>&1 | tee compilation_log.txt
     - cd ../../
+    # Create a directory structure for binaries
+    - mkdir -p kicad-binaries/bin
+    - mkdir -p kicad-binaries/lib
+    - mkdir -p kicad-binaries/3d-viewer
+    - mkdir -p kicad-binaries/fonts
+    # Collect all application binaries and shared libraries
+    - |
+      for app in pcbnew eeschema kicad cvpcb gerbview kicad2step; do
+        if [ -f "build/linux/bin/$app" ]; then
+          cp "build/linux/bin/$app" kicad-binaries/bin/
+        fi
+        if [ -f "build/linux/$app/_$app.kiface" ]; then
+          cp "build/linux/$app/_$app.kiface" kicad-binaries/bin/
+        fi
+        if [ -f "build/linux/$app/_$app.so" ]; then
+          cp "build/linux/$app/_$app.so" kicad-binaries/bin/
+        fi
+      done
+    # Copy shared libraries and dependencies
+    - |
+      if [ -d "build/linux/3d-viewer" ]; then
+        cp -r build/linux/3d-viewer/* kicad-binaries/3d-viewer/ 2>/dev/null || true
+      fi
+      if [ -d "build/linux/libwmf/fonts" ]; then
+        cp -r build/linux/libwmf/fonts/* kicad-binaries/fonts/ 2>/dev/null || true
+      fi
+    # Create version info file
+    - |
+      cat > kicad-binaries/BUILD_INFO.txt << EOF
+      KiCad Build Information
+      ======================
+      Build Date: $(date)
+      Git Commit: ${CI_COMMIT_SHA:0:8}
+      Build Type: Release
+      Ubuntu Version: 20.04
+      
+      Contents:
+      - pcbnew: PCB design tool
+      - eeschema: Schematic editor
+      - kicad: Project manager
+      - cvpcb: Component footprint selector
+      - gerbview: Gerber file viewer
+      - kicad2step: STEP file converter
+      
+      Included Libraries:
+      - 3D Viewer resources
+      - WMF fonts
+      EOF
+    # Create the zip archive
+    - cd kicad-binaries && zip -r ../kicad-binaries-ubuntu20.04-$(date +%Y%m%d-%H%M%S).zip . && cd ..
   artifacts:
-    # Only save the artifacts that are needed for running the tests in the next stage
-    # and the compilation log. The entire build directory is too large to save as an
-    # artifact.
-    expire_in: 2 hrs
-    when: always
+    # Save the zip file for long-term storage and distribution
+    expire_in: 30 days
+    name: "kicad-binaries-$CI_COMMIT_SHORT_SHA"
     paths:
-      - build/linux/3d-viewer/
-      - build/linux/libwmf/fonts/
-      - build/linux/pcbnew/_pcbnew.kiface
-      - build/linux/pcbnew/_pcbnew.so
-      - build/linux/qa/
+      - kicad-binaries-ubuntu20.04-*.zip
       - build/linux/compilation_log.txt
+      - build/linux/qa/
     exclude:
       - build/linux/**/*.o
       - build/linux/**/*.a
+    when: always
 
+##########################################################################
 # Upload the compilation log in an easily downloadable form
+##########################################################################
 .ubuntu20.04_report_build_warn:
   stage: report
   when: always
@@ -75,7 +123,9 @@
     paths:
       - compilation_log.txt
 
+##########################################################################
 # Report on the metrics of the code
+##########################################################################
 .ubuntu20.04_report_metrics:
   stage: report
   when: always
