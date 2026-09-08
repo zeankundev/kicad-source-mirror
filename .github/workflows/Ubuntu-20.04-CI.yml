@@ -12,6 +12,21 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+      include_tests:
+        description: 'Include test artifacts'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   ubuntu-20-04-build:
@@ -47,11 +62,12 @@ jobs:
         run: |
           mkdir -p build/linux
           cd build/linux
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'Release' }}"
           cmake \
             -G Ninja \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DKICAD_STDLIB_LIGHT_DEBUG=ON \
             -DKICAD_USE_OCC=ON \
             -DKICAD_BUILD_I18N=ON \
@@ -128,6 +144,6 @@ jobs:
           path: |
             kicad-binaries-ubuntu20.04-*.zip
             build/linux/compilation_log.txt
-            build/linux/qa/
+            ${{ github.event.inputs.include_tests == 'true' && 'build/linux/qa/' || '' }}
           retention-days: 30
           if-no-files-found: ignore
