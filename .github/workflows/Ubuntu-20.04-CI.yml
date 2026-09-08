@@ -77,7 +77,7 @@ jobs:
       - name: Build with Ninja
         run: |
           cd build/linux
-          ninja 2>&1 | tee compilation_log.txt
+          ninja -j$(nproc) 2>&1 | tee compilation_log.txt
 
       - name: Create binary directory structure
         run: |
