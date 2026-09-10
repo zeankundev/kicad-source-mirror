@@ -57,9 +57,11 @@ jobs:
             libocct-data-exchange-dev \
             libocct-visualization-dev \
             libprotobuf-dev \
+            libpoppler-dev\
             libspnav-dev \
             libsecret-1-dev \
             protobuf-compiler \
+            poppler-dev \
             libnng-dev \
             zlib1g-dev \
             libzstd-dev \
