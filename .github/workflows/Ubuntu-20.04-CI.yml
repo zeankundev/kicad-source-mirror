@@ -63,7 +63,6 @@ jobs:
             zlib1g-dev \
             libzstd-dev \
             libwxgtk3.2-dev \
-            wxWidgets-devel \
 
       - name: Create ccache directory
         run: mkdir -p ccache
