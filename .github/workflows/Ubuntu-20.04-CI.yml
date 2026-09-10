@@ -59,7 +59,7 @@ jobs:
             libocct-data-exchange-dev \
             libocct-visualization-dev \
             libprotobuf-dev \
-            libpoppler-dev\
+            libpoppler-dev \
             libpoppler-glib-dev \
             libpoppler-cpp-dev \
             libspnav-dev \
@@ -75,6 +75,7 @@ jobs:
             wx3.2-headers \
             wx-common \
             unixodbc-dev \
+            file
 
       - name: Create ccache directory
         run: mkdir -p ccache
@@ -118,35 +119,93 @@ jobs:
           echo "Building with $(nproc) cores, going ahead!"
           ninja -j$(nproc) 2>&1 | tee compilation_log.txt
 
+      - name: Debug - List build directory structure
+        if: always()
+        run: |
+          echo "=== Build output structure ==="
+          find build/linux -type f -executable -print0 | xargs -0 file | grep "ELF.*x86-64" | head -20
+          echo ""
+          echo "=== Looking for .kiface files ==="
+          find build/linux -name "*.kiface" -type f
+          echo ""
+          echo "=== Looking for .so files ==="
+          find build/linux -name "*.so*" -type f | grep -v ".so\." | head -20
+
       - name: Create binary directory structure
         run: |
           mkdir -p kicad-binaries/bin
           mkdir -p kicad-binaries/lib
-          mkdir -p kicad-binaries/3d-viewer
-          mkdir -p kicad-binaries/fonts
+          mkdir -p kicad-binaries/plugins
+          mkdir -p kicad-binaries/resources
 
-      - name: Collect application binaries
+      - name: Collect all ELF x86-64 binaries
         run: |
-          for app in pcbnew eeschema kicad cvpcb gerbview kicad2step; do
-            if [ -f "build/linux/bin/$app" ]; then
-              cp "build/linux/bin/$app" kicad-binaries/bin/
-            fi
-            if [ -f "build/linux/$app/_$app.kiface" ]; then
-              cp "build/linux/$app/_$app.kiface" kicad-binaries/bin/
-            fi
-            if [ -f "build/linux/$app/_$app.so" ]; then
-              cp "build/linux/$app/_$app.so" kicad-binaries/bin/
+          echo "=== Collecting ELF binaries ==="
+          find build/linux -type f -executable | while read binary; do
+            if file "$binary" | grep -q "ELF.*x86-64"; then
+              echo "Found: $binary"
+              cp "$binary" kicad-binaries/bin/ || true
             fi
           done
+          ls -lah kicad-binaries/bin/
 
-      - name: Copy shared libraries and resources
+      - name: Collect plugin libraries (.kiface and .so files)
         run: |
-          if [ -d "build/linux/3d-viewer" ]; then
-            cp -r build/linux/3d-viewer/* kicad-binaries/3d-viewer/ 2>/dev/null || true
+          echo "=== Collecting plugin files (.kiface) ==="
+          find build/linux -name "*.kiface" -type f | while read plugin; do
+            echo "Found plugin: $plugin"
+            cp "$plugin" kicad-binaries/plugins/ || true
+          done
+          
+          echo "=== Collecting shared objects (.so) ==="
+          find build/linux -name "*.so" -type f ! -name "*.so.*" | while read sofile; do
+            if file "$sofile" | grep -q "ELF.*x86-64"; then
+              echo "Found .so: $sofile"
+              cp "$sofile" kicad-binaries/lib/ || true
+            fi
+          done
+          
+          echo "=== Collecting versioned .so files ==="
+          find build/linux -name "*.so.*" -type f | while read sofile; do
+            if file "$sofile" | grep -q "ELF.*x86-64"; then
+              echo "Found .so.*: $sofile"
+              cp "$sofile" kicad-binaries/lib/ || true
+            fi
+          done
+          
+          ls -lah kicad-binaries/plugins/
+          ls -lah kicad-binaries/lib/
+
+      - name: Collect data files and resources
+        run: |
+          echo "=== Collecting resources ==="
+          for resdir in share resources 3d-models footprints; do
+            if [ -d "build/linux/$resdir" ]; then
+              echo "Copying $resdir..."
+              cp -r "build/linux/$resdir" kicad-binaries/resources/ 2>/dev/null || true
+            fi
+          done
+          
+          if [ -d "build/linux/bin" ]; then
+            echo "Copying remaining bin contents..."
+            cp -r "build/linux/bin"/* kicad-binaries/resources/ 2>/dev/null || true
           fi
-          if [ -d "build/linux/libwmf/fonts" ]; then
-            cp -r build/linux/libwmf/fonts/* kicad-binaries/fonts/ 2>/dev/null || true
-          fi
+
+      - name: Verify collected binaries
+        run: |
+          echo "=== FINAL BINARY INVENTORY ==="
+          echo ""
+          echo "Executables in bin/:"
+          file kicad-binaries/bin/* 2>/dev/null | grep ELF || echo "No ELF binaries found!"
+          echo ""
+          echo "Plugins in plugins/:"
+          file kicad-binaries/plugins/* 2>/dev/null || echo "No plugins found!"
+          echo ""
+          echo "Libraries in lib/:"
+          file kicad-binaries/lib/* 2>/dev/null | head -10 || echo "No libraries found!"
+          echo ""
+          echo "Total files collected:"
+          find kicad-binaries -type f | wc -l
 
       - name: Create build info file
         run: |
@@ -155,25 +214,29 @@ jobs:
           ======================
           Build Date: $(date)
           Git Commit: ${{ github.sha }}
-          Build Type: Release
+          Build Type: ${{ github.event.inputs.build_type || 'Release' }}
           Built by: zeankundev (CI)
-          Contents:
-          - pcbnew: PCB design tool
-          - eeschema: Schematic editor
-          - kicad: Project manager
-          - cvpcb: Component footprint selector
-          - gerbview: Gerber file viewer
-          - kicad2step: STEP file converter
-          Included Libraries:
-          - 3D Viewer resources
-          - WMF fonts
+          
+          Directory Structure:
+          - bin/: All ELF x86-64 executables (pcbnew, eeschema, kicad, cvpcb, gerbview, kicad2step, etc.)
+          - lib/: Shared object libraries (.so, .so.*)
+          - plugins/: Plugin files (.kiface)
+          - resources/: Data files and resources
+          
+          Binary Inventory:
           EOF
+          echo "" >> kicad-binaries/BUILD_INFO.txt
+          echo "Binaries:" >> kicad-binaries/BUILD_INFO.txt
+          file kicad-binaries/bin/* 2>/dev/null | grep -o '[^/]*$' >> kicad-binaries/BUILD_INFO.txt || true
+          echo "" >> kicad-binaries/BUILD_INFO.txt
+          echo "Total files: $(find kicad-binaries -type f | wc -l)" >> kicad-binaries/BUILD_INFO.txt
 
       - name: Create archive
         run: |
           cd kicad-binaries
           zip -r ../kicad-binaries-ubuntu20.04-${{ github.run_number }}.zip .
           cd ..
+          ls -lh kicad-binaries-ubuntu20.04-*.zip
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -183,6 +246,15 @@ jobs:
           path: |
             kicad-binaries-ubuntu20.04-*.zip
             build/linux/compilation_log.txt
-            ${{ github.event.inputs.include_tests == 'true' && 'build/linux/qa/' || '' }}
+            kicad-binaries/BUILD_INFO.txt
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload test artifacts (optional)
+        uses: actions/upload-artifact@v4
+        if: github.event.inputs.include_tests == 'true'
+        with:
+          name: kicad-tests-${{ github.sha }}
+          path: build/linux/qa/
           retention-days: 30
           if-no-files-found: ignore
