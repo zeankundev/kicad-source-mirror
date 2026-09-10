@@ -61,7 +61,6 @@ jobs:
             libspnav-dev \
             libsecret-1-dev \
             protobuf-compiler \
-            poppler-dev \
             libnng-dev \
             zlib1g-dev \
             libzstd-dev \
