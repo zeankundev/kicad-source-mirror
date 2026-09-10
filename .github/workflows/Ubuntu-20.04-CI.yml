@@ -62,9 +62,12 @@ jobs:
             libnng-dev \
             zlib1g-dev \
             libzstd-dev \
-            wx-common \
-            wx3.2-headers \
+            libgtk-3-dev \
             libwxgtk3.2-dev \
+            libwxgtk-media3.2-dev \
+            libwxgtk-webview3.2-dev \
+            wx3.2-headers \
+            wx-common
 
       - name: Create ccache directory
         run: mkdir -p ccache
