@@ -58,6 +58,8 @@ jobs:
             libocct-visualization-dev \
             libprotobuf-dev \
             libpoppler-dev\
+            libpoppler-glib-dev \
+            libpoppler-cpp-dev \
             libspnav-dev \
             libsecret-1-dev \
             protobuf-compiler \
