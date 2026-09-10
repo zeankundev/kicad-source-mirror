@@ -70,7 +70,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DKICAD_STDLIB_LIGHT_DEBUG=ON \
             -DKICAD_USE_OCC=ON \
-            -DKICAD_BUILD_I18N=ON \
+            -DKICAD_BUILD_I18N=OFF \
             -DKICAD_BUILD_PNS_DEBUG_TOOL=ON \
             ../../
 
