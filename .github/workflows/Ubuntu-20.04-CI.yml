@@ -41,6 +41,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake \
+            clang \
+            lld \
             ninja-build \
             ccache \
             libglm-dev \
@@ -98,8 +100,9 @@ jobs:
           BUILD_TYPE="${{ github.event.inputs.build_type || 'Release' }}"
           cmake \
             -G Ninja \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_C_COMPILER_LAUNCHER="ccache clang" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER="ccache clang++" \
+            -DCMAKE_LINKER_TYPE=LLD \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DKICAD_STDLIB_LIGHT_DEBUG=ON \
             -DKICAD_USE_OCC=ON \
