@@ -69,7 +69,6 @@ jobs:
             wx3.2-headers \
             wx-common \
             unixodbc-dev \
-            iodbc \
 
       - name: Create ccache directory
         run: mkdir -p ccache
