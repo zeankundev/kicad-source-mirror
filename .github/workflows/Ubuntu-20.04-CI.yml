@@ -58,6 +58,7 @@ jobs:
             libocct-visualization-dev \
             libprotobuf-dev \
             libspnav-dev \
+            libsecret-1-dev \
             protobuf-compiler \
             libnng-dev \
             zlib1g-dev \
