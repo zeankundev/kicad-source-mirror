@@ -115,6 +115,7 @@ jobs:
       - name: Build with Ninja
         run: |
           cd build/linux
+          echo "Building with $(nproc) cores, going ahead!"
           ninja -j$(nproc) 2>&1 | tee compilation_log.txt
 
       - name: Create binary directory structure
