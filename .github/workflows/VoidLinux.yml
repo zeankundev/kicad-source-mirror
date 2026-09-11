@@ -68,6 +68,8 @@ jobs:
             zlib-devel \
             libzstd-devel \
             gtk+3-devel \
+            wxWidgets \
+            wxWidgets-common-devel \
             wxWidgets-gtk3-devel \
             unixodbc-devel \
             file
