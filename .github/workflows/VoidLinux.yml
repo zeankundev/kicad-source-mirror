@@ -56,7 +56,7 @@ jobs:
             harfbuzz-devel \
             fontconfig-devel \
             ngspice-devel \
-            opencascade-devel \
+            occt-devel \
             protobuf-devel \
             protobuf \
             poppler-devel \
