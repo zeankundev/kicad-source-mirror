@@ -82,6 +82,14 @@ jobs:
         run: |
           ln -s /usr/bin/wx-config-gtk3 /usr/bin/wx-config
 
+      # xbps-install does not always refresh the dynamic linker cache
+      # after installing new libs, which makes `ldd` falsely report
+      # freshly-installed libraries (wxWidgets, poppler, etc.) as
+      # "not found" later on even though the files are present on
+      # disk. Refresh it now so every later `ldd` call is trustworthy.
+      - name: Refresh dynamic linker cache
+        run: ldconfig || true
+
       # actions/checkout needs a working git and a newer libc-shim than the
       # container may have registered yet, so we check out manually instead.
       - name: Checkout code
@@ -214,31 +222,69 @@ jobs:
           EXCLUDE_PATTERN='^(linux-vdso|ld-linux|libc\.so|libm\.so|libpthread\.so|libdl\.so|librt\.so|libresolv\.so|libutil\.so)'
 
           mkdir -p kicad-binaries/lib
-          DEPS_LIST=$(mktemp)
 
-          # Scan every collected ELF binary and plugin for its deps
+          # Extra search roots to fall back on when `ldd`/the cache
+          # can't resolve a needed library by name. Void keeps runtime
+          # libs under /usr/lib, /usr/lib64 and sometimes /lib*.
+          SEARCH_ROOTS="/usr/lib /usr/lib64 /usr/local/lib /lib /lib64"
+
+          find_lib_by_name() {
+            name="$1"
+            for root in $SEARCH_ROOTS; do
+              [ -d "$root" ] || continue
+              hit=$(find "$root" -maxdepth 2 -name "$name" -print -quit 2>/dev/null)
+              if [ -n "$hit" ]; then
+                echo "$hit"
+                return 0
+              fi
+            done
+            # last resort, slower, full filesystem search
+            find / -xdev -name "$name" -print -quit 2>/dev/null
+          }
+
+          bundle_deps_of() {
+            f="$1"
+            pass_label="$2"
+            # Get the bare NEEDED names directly from the ELF (works
+            # even when ldd can't resolve a path), then resolve each
+            # one either via ldd's own resolution or a manual search.
+            needed=$(patchelf --print-needed "$f" 2>/dev/null || true)
+            [ -n "$needed" ] || return 0
+
+            # Map of name -> resolved path from ldd, when available
+            ldd_out=$(ldd "$f" 2>/dev/null || true)
+
+            echo "$needed" | while read -r libname; do
+              [ -n "$libname" ] || continue
+              if echo "$libname" | grep -qE "$EXCLUDE_PATTERN"; then
+                continue
+              fi
+              if [ -f "kicad-binaries/lib/$libname" ]; then
+                continue
+              fi
+
+              libpath=$(echo "$ldd_out" | awk -v n="$libname" '$1==n && $3 ~ /^\// {print $3; exit}')
+              if [ -z "$libpath" ] || [ ! -f "$libpath" ]; then
+                echo "  ldd could not resolve $libname for $f, searching filesystem..."
+                libpath=$(find_lib_by_name "$libname")
+              fi
+
+              if [ -n "$libpath" ] && [ -f "$libpath" ]; then
+                echo "Bundling ($pass_label): $libpath"
+                cp -L "$libpath" "kicad-binaries/lib/$libname" || true
+              else
+                echo "  !! Could not locate $libname anywhere (needed by $f)"
+              fi
+            done
+          }
+
           for f in kicad-binaries/bin/* kicad-binaries/plugins/* kicad-binaries/lib/*; do
             [ -f "$f" ] || continue
             file "$f" | grep -q "ELF" || continue
-            ldd "$f" 2>/dev/null | awk '{print $3}' | grep '^/' >> "$DEPS_LIST" || true
+            bundle_deps_of "$f" "top-level"
           done
 
-          sort -u "$DEPS_LIST" -o "$DEPS_LIST"
-          echo "Found $(wc -l < "$DEPS_LIST") unique dependency paths"
-
-          while read -r libpath; do
-            [ -f "$libpath" ] || continue
-            libname=$(basename "$libpath")
-            if echo "$libname" | grep -qE "$EXCLUDE_PATTERN"; then
-              continue
-            fi
-            if [ ! -f "kicad-binaries/lib/$libname" ]; then
-              echo "Bundling: $libpath"
-              cp -L "$libpath" "kicad-binaries/lib/$libname" || true
-            fi
-          done < "$DEPS_LIST"
-
-          # Second pass: the libs we just copied may themselves pull in
+          # Second+ pass: libs we just copied may themselves pull in
           # further deps not referenced directly by the top-level
           # binaries. Repeat resolution against the bundled set until
           # it stops growing.
@@ -252,22 +298,12 @@ jobs:
             for f in kicad-binaries/lib/*; do
               [ -f "$f" ] || continue
               file "$f" | grep -q "ELF" || continue
-              ldd "$f" 2>/dev/null | awk '{print $3}' | grep '^/' | while read -r libpath; do
-                [ -f "$libpath" ] || continue
-                libname=$(basename "$libpath")
-                if echo "$libname" | grep -qE "$EXCLUDE_PATTERN"; then
-                  continue
-                fi
-                if [ ! -f "kicad-binaries/lib/$libname" ]; then
-                  echo "Bundling (pass $i): $libpath"
-                  cp -L "$libpath" "kicad-binaries/lib/$libname" || true
-                fi
-              done
+              bundle_deps_of "$f" "pass $i"
             done
           done
 
           echo "=== Final bundled lib count: $(find kicad-binaries/lib -type f | wc -l) ==="
-          ls -lah kicad-binaries/lib | head -40
+          ls -lah kicad-binaries/lib | head -60
 
       - name: Rewrite RPATH so binaries prefer the bundled libs
         run: |
