@@ -73,7 +73,9 @@ jobs:
             wxWidgets-common-devel \
             wxWidgets-gtk3-devel \
             unixodbc-devel \
-            file
+            file \
+            zip \
+            unzip \
 
       - name: Create wx-config symlink
         run: |
