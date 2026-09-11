@@ -75,6 +75,10 @@ jobs:
             unixodbc-devel \
             file
 
+      - name: Create wx-config symlink
+        run: |
+          ln -s /usr/bin/wx-config-gtk3 /usr/bin/wx-config
+
       # actions/checkout needs a working git and a newer libc-shim than the
       # container may have registered yet, so we check out manually instead.
       - name: Checkout code
