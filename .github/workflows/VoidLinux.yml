@@ -1,5 +1,5 @@
 ##########################################################################
-# Build KiCad on Void Linux and save the results
+# Build KiCad on Void Linux and save the results (self-contained bundle)
 ##########################################################################
 name: Void Linux Build
 
@@ -73,6 +73,7 @@ jobs:
             wxWidgets-common-devel \
             wxWidgets-gtk3-devel \
             unixodbc-devel \
+            patchelf \
             file \
             zip \
             unzip \
@@ -191,6 +192,123 @@ jobs:
           ls -lah kicad-binaries/plugins/
           ls -lah kicad-binaries/lib/
 
+      # ---------------------------------------------------------------
+      # NEW: bundle every runtime shared library that the collected
+      # binaries and .kiface plugins actually depend on (via ldd),
+      # excluding the small set of "always safe to assume on the host"
+      # base libc/kernel libraries. This is what fixes both:
+      #   - the wxWidgets ABI-mismatch segfault (host wx != build wx)
+      #   - the poppler .so.162 vs .so.163 mismatch
+      # because the app will use ITS OWN copies of these libs instead
+      # of whatever happens to be installed on the target machine.
+      # ---------------------------------------------------------------
+      - name: Resolve and bundle all transitive runtime dependencies
+        run: |
+          set -e
+          echo "=== Resolving transitive shared library dependencies ==="
+
+          # Libraries considered part of the base OS ABI - never bundle
+          # these, always use the host's copy (glibc, linker, pthread
+          # internals living inside libc, etc). Bundling these can
+          # actually break things across distros.
+          EXCLUDE_PATTERN='^(linux-vdso|ld-linux|libc\.so|libm\.so|libpthread\.so|libdl\.so|librt\.so|libresolv\.so|libutil\.so)'
+
+          mkdir -p kicad-binaries/lib
+          DEPS_LIST=$(mktemp)
+
+          # Scan every collected ELF binary and plugin for its deps
+          for f in kicad-binaries/bin/* kicad-binaries/plugins/* kicad-binaries/lib/*; do
+            [ -f "$f" ] || continue
+            file "$f" | grep -q "ELF" || continue
+            ldd "$f" 2>/dev/null | awk '{print $3}' | grep '^/' >> "$DEPS_LIST" || true
+          done
+
+          sort -u "$DEPS_LIST" -o "$DEPS_LIST"
+          echo "Found $(wc -l < "$DEPS_LIST") unique dependency paths"
+
+          while read -r libpath; do
+            [ -f "$libpath" ] || continue
+            libname=$(basename "$libpath")
+            if echo "$libname" | grep -qE "$EXCLUDE_PATTERN"; then
+              continue
+            fi
+            if [ ! -f "kicad-binaries/lib/$libname" ]; then
+              echo "Bundling: $libpath"
+              cp -L "$libpath" "kicad-binaries/lib/$libname" || true
+            fi
+          done < "$DEPS_LIST"
+
+          # Second pass: the libs we just copied may themselves pull in
+          # further deps not referenced directly by the top-level
+          # binaries. Repeat resolution against the bundled set until
+          # it stops growing.
+          PREV_COUNT=0
+          for i in 1 2 3 4 5; do
+            CUR_COUNT=$(find kicad-binaries/lib -type f | wc -l)
+            if [ "$CUR_COUNT" -eq "$PREV_COUNT" ]; then
+              break
+            fi
+            PREV_COUNT=$CUR_COUNT
+            for f in kicad-binaries/lib/*; do
+              [ -f "$f" ] || continue
+              file "$f" | grep -q "ELF" || continue
+              ldd "$f" 2>/dev/null | awk '{print $3}' | grep '^/' | while read -r libpath; do
+                [ -f "$libpath" ] || continue
+                libname=$(basename "$libpath")
+                if echo "$libname" | grep -qE "$EXCLUDE_PATTERN"; then
+                  continue
+                fi
+                if [ ! -f "kicad-binaries/lib/$libname" ]; then
+                  echo "Bundling (pass $i): $libpath"
+                  cp -L "$libpath" "kicad-binaries/lib/$libname" || true
+                fi
+              done
+            done
+          done
+
+          echo "=== Final bundled lib count: $(find kicad-binaries/lib -type f | wc -l) ==="
+          ls -lah kicad-binaries/lib | head -40
+
+      - name: Rewrite RPATH so binaries prefer the bundled libs
+        run: |
+          set -e
+          echo "=== Patching RPATH on binaries and plugins ==="
+
+          # bin/ and plugins/ both sit one level below the top dir, and
+          # lib/ is a sibling of both, so $ORIGIN/../lib reaches it from
+          # either location.
+          for f in kicad-binaries/bin/* kicad-binaries/plugins/*; do
+            [ -f "$f" ] || continue
+            file "$f" | grep -q "ELF" || continue
+            echo "Patching: $f"
+            patchelf --set-rpath '$ORIGIN/../lib' "$f" || echo "  (skip, not patchable: $f)"
+          done
+
+          # Libraries in lib/ may depend on each other, so they need
+          # $ORIGIN (i.e. lib/ itself) in their own rpath too.
+          for f in kicad-binaries/lib/*; do
+            [ -f "$f" ] || continue
+            file "$f" | grep -q "ELF" || continue
+            patchelf --set-rpath '$ORIGIN' "$f" 2>/dev/null || true
+          done
+
+          echo "=== Verifying no more missing deps (excluding base OS libs) ==="
+          MISSING=0
+          for f in kicad-binaries/bin/* kicad-binaries/plugins/*; do
+            [ -f "$f" ] || continue
+            file "$f" | grep -q "ELF" || continue
+            if ldd "$f" 2>/dev/null | grep -q "not found"; then
+              echo "!! Missing deps in $f:"
+              ldd "$f" | grep "not found"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" -eq 1 ]; then
+            echo "WARNING: some binaries still have unresolved deps - check log above."
+          else
+            echo "All good: every binary resolves fully against bundled libs + base OS libs."
+          fi
+
       - name: Collect data files and resources
         run: |
           echo "=== Collecting resources ==="
@@ -222,9 +340,30 @@ jobs:
           echo "Total files collected:"
           find kicad-binaries -type f | wc -l
 
+      - name: Create launcher wrapper scripts
+        run: |
+          # Belt-and-suspenders alongside RPATH: also ship a launcher
+          # that sets LD_LIBRARY_PATH, in case a user extracts the
+          # archive somewhere patchelf's $ORIGIN math doesn't like
+          # (e.g. symlinked bin dirs).
+          cd kicad-binaries/bin
+          for bin in *; do
+            [ -f "$bin" ] || continue
+            file "$bin" | grep -q "ELF" || continue
+            mv "$bin" ".$bin.real"
+            cat > "$bin" << WRAPPER
+          #!/bin/sh
+          HERE="\$(cd "\$(dirname "\$0")" && pwd)"
+          export LD_LIBRARY_PATH="\$HERE/../lib:\$LD_LIBRARY_PATH"
+          exec "\$HERE/.$bin.real" "\$@"
+          WRAPPER
+            chmod +x "$bin"
+          done
+          ls -lah
+
       - name: Create build info file
         run: |
-          cat > kicad-binaries/BUILD_INFO.txt << 'EOF'
+          cat > kicad-binaries/BUILD_INFO.txt << EOF
           KiCad Build Information
           ======================
           Build Date: $(date)
@@ -234,17 +373,23 @@ jobs:
           Built by: zeankundev (CI)
 
           Directory Structure:
-          - bin/: All ELF x86-64 executables (pcbnew, eeschema, kicad, cvpcb, gerbview, kicad2step, etc.)
-          - lib/: Shared object libraries (.so, .so.*)
+          - bin/: Launcher wrapper scripts (real binaries as .NAME.real)
+          - lib/: Bundled shared object libraries (.so, .so.*) - self-contained
           - plugins/: Plugin files (.kiface)
           - resources/: Data files and resources
+
+          This bundle is self-contained: all wx/poppler/etc runtime
+          libraries are shipped in lib/ with RPATH + LD_LIBRARY_PATH
+          fallback, so it should run without depending on the host's
+          installed library versions.
 
           Binary Inventory:
           EOF
           echo "" >> kicad-binaries/BUILD_INFO.txt
           echo "Binaries:" >> kicad-binaries/BUILD_INFO.txt
-          file kicad-binaries/bin/* 2>/dev/null | grep -o '[^/]*$' >> kicad-binaries/BUILD_INFO.txt || true
+          ls kicad-binaries/bin/ >> kicad-binaries/BUILD_INFO.txt || true
           echo "" >> kicad-binaries/BUILD_INFO.txt
+          echo "Bundled libs: $(find kicad-binaries/lib -type f | wc -l)" >> kicad-binaries/BUILD_INFO.txt
           echo "Total files: $(find kicad-binaries -type f | wc -l)" >> kicad-binaries/BUILD_INFO.txt
 
       - name: Create archive
