@@ -55,7 +55,7 @@ jobs:
             freetype-devel \
             harfbuzz-devel \
             fontconfig-devel \
-            libngspice-devel \
+            ngspice-devel \
             opencascade-devel \
             protobuf-devel \
             protobuf \
