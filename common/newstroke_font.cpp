@@ -7,6 +7,11 @@
  * NOTE: check the license of the source FontoBene font before
  * distributing this generated file - this script does not change or
  * grant any licensing rights over the original artwork.
+ *
+ * ASCII glyphs (U+0020-U+007E) were regenerated from the original
+ * ansifont.dat stroke data (the same "Allegro ANSI Font") using
+ * convert_ansifont.py; all other glyphs are unchanged from the
+ * previous version of this file.
  */
 
 #include <newstroke_font.h>
@@ -15,101 +20,101 @@
 
 const char* const newstroke_font[] =
 {
-    "R^", /* U+0020 */
-    "RYRFRU RSZRZRZQZR[R[SZ", /* U+0021 '!' */
-    "R^RKTF RXFVK", /* U+0022 '"' */
-    "RmVb\\F RdF\\b RRXgX RgQRQ", /* U+0023 '#' */
-    "RmRYR[V_d_g[gXdTVTRQRMVIdIgMgO R`F`b RYbYF", /* U+0024 '$' */
-    "RlV\\cF RVFTGSHRJSLTMVNXMYLZJYHXGVF RcTaU`V_X`Za[c\\e[fZgXfVeUcT", /* U+0025 '%' */
-    "RmgbVMVIYF\\F`I`M\\QVTRXR_Vb`bg[", /* U+0026 '&' */
-    "R[RMVIVFSFSIVI", /* U+0027 "'" */
-    "R]WbT_R[RMTIWF", /* U+0028 '(' */
-    "R]RbV_W[WMVIRF", /* U+0029 ')' */
-    "RmU\\dL R\\I\\_ Rd\\UL RRTgT", /* U+002A '*' */
-    "R`RT[T RVOVY", /* U+002B '+' */
-    "RYQ_SZ", /* U+002C ',' */
-    "RaRT[T", /* U+002D '-' */
-    "RYS\\R[R[SZS[S[S\\", /* U+002E '.' */
-    "RdR\\_F", /* U+002F '/' */
-    "RgZFWGUHSKRMRQRTSVUYWZZ[\\Z_Y`VaTaQaM`K_H\\GZF", /* U+0030 '0' */
-    "R`V[VFRJ RR[Z[", /* U+0031 '1' */
-    "RgSIUGWFZF^G`HaK`M_NXRUTSXR[a[", /* U+0032 '2' */
-    "RhRWTYW[Z[][`YaWbUaR_Q\\PYP R\\P^O`MaK`I^G[FXFUH", /* U+0033 '3' */
-    "Ri_[_FRUdU", /* U+0034 '4' */
-    "RgRXTZW[Z[]Z_YaVaTaQ_O\\NZMXNTOVF_F", /* U+0035 '5' */
-    "ReRRUPWNYN\\N^P_R_T_V^Y\\ZY[VZTXRURRSMTKVHXF[F]G_H", /* U+0036 '6' */
-    "RfX[YVZS[O]K`FRF", /* U+0037 '7' */
-    "RgZ[\\[_ZaXaUaS_Q[PXPVOTMSKTHWGZF\\G_H`K_M^O[PXPUQSSRUSXTZW[Z[", /* U+0038 '8' */
-    "RfSYUZX[[Z^X_U`R`N_K^H[GYFVGTHSJRMSOTRWSYT\\S^Q`N", /* U+0039 '9' */
-    "RYS\\R[R[SZS[S[S\\ RSRRRRQSQSQSRSR", /* U+003A ':' */
-    "R]RaW\\WXRXR\\W\\ RWTWORORTWT", /* U+003B ';' */
-    "Rf`[RT`M", /* U+003C '<' */
-    "RaRW[W R[QRQ", /* U+003D '=' */
-    "RfR[`TRM", /* U+003E '>' */
-    "RaW\\V[V[WZW[W[W\\ RWWWRWPYNZM[L[J[HYGWFUFSGRI", /* U+003F '?' */
-    "RmbX^[[[WXWQ[M^MbQbXdZgXgIdFVFRIR_Vbdbg_", /* U+0040 '@' */
-    "RiR[[Fd[ R`TUT", /* U+0041 'A' */
-    "Rh]P^O_M`K_H^G\\FRFR[^[`ZbXbUbS_Q]PRP", /* U+0042 'B' */
-    "RicH`G^F[FXGVITKRNRRSUTWVYXZ[[][`ZbYdX", /* U+0043 'C' */
-    "RgR[RFYF\\G^H`KaMaQaT`V^Y\\ZY[R[", /* U+0044 'D' */
-    "Rf`[R[RF`F RZPRP", /* U+0045 'E' */
-    "ReR[RF_F R[PRP", /* U+0046 'F' */
-    "Rj]QdQdWbY`Z\\[YZVYTWSTRRROSMTKVHXG[F^F`GbH", /* U+0047 'G' */
-    "RgR[RF RaFa[ RaQRQ", /* U+0048 'H' */
-    "R`RFZF RVFV[ RR[Z[", /* U+0049 'I' */
-    "RfRWTYVZX[[Z]Y_W`T`F", /* U+004A 'J' */
-    "RgR[RF R_FRS Ra[XM", /* U+004B 'K' */
-    "RfRFR[`[", /* U+004C 'L' */
-    "RjR[RF[XdFd[", /* U+004D 'M' */
-    "RhR[RFb[bF", /* U+004E 'N' */
-    "Rk\\[Y[VYTWSURRROSLTJVHYF\\F^FaHcJdLeOeRdUcWaY^[\\[", /* U+004F 'O' */
-    "RfR[RFZF]G_I`L_O^QZRRR", /* U+0050 'P' */
-    "Rk\\[Y[VYTWSURRROSLTJVHYF\\F^FaHcJdLeOeRdUcWaY^[\\[ R^Uc[", /* U+0051 'Q' */
-    "RfR[RF[F^G_H`K_N]P[QRQ R[Q`[", /* U+0052 'R' */
-    "RgRXUZX[[[^Z`XaV`S^Q[PWOUNTKTIVGXF[F]G_H", /* U+0053 'S' */
-    "RhZFZ[ RRFbF", /* U+0054 'T' */
-    "RgRFRUSXVZZ[]Z`XaUaF", /* U+0055 'U' */
-    "RiRF[[dF", /* U+0056 'V' */
-    "RmRFW[\\Fb[gF", /* U+0057 'W' */
-    "RgR[aF RRFa[", /* U+0058 'X' */
-    "RfY[YRRF R`FYR", /* U+0059 'Y' */
-    "ReRF_FR[_[", /* U+005A 'Z' */
-    "R_YFRFRbYb", /* U+005B '[' */
-    "RmRFgb", /* U+005C '\\' */
-    "R_RbYbYFRF", /* U+005D ']' */
-    "RiVT\\FdT R\\F\\b", /* U+005E '^' */
-    "RmRbgb", /* U+005F '_' */
-    "R[VMRIRFUFUIRI", /* U+0060 '`' */
-    "Rd_[_M R_O]N[MYMVNTOSQRTSWTYVZY[[[]Z_X", /* U+0061 'a' */
-    "RdR[RF RRQTNVMXM[N]O_R_T^W]YZ[X[V[TZRX", /* U+0062 'b' */
-    "Rc]O[MYMVNTORRRTRVTYVZY[[Z]Y", /* U+0063 'c' */
-    "Rd_F_[ R_X]Z[[Y[VZTYRVRTRRTOVNYM[M]N_O", /* U+0064 'd' */
-    "RdSR^R]O[NYMVMTNSQRSRUSWUYW[Y[\\Z^X", /* U+0065 'e' */
-    "RcV[VIWGXFZF\\G]H RYNRN", /* U+0066 'f' */
-    "RdS`VbYb[b]`_]_M R_P]N[MYMVNTOSRRTRVTYVZY[[[]Y_X", /* U+0067 'g' */
-    "RdR[RF RRPTNUMXMZM]O^Q^[", /* U+0068 'h' */
-    "RYRMR[ RRGQGQFRFSFSGRG", /* U+0069 'i' */
-    "R\\ObRaT`U\\UM RUGTGTFUFVFVGUG", /* U+006A 'j' */
-    "RdR[RF R]MRU RWR^[", /* U+006B 'k' */
-    "RXR[RF", /* U+006C 'l' */
-    "RmR[RM RRQSOUNWMZN[O\\Q\\[ R\\Q^O_NbMdNfOgQg[", /* U+006D 'm' */
-    "RdR[RM RRQTOVMXM[M]O^Q^[", /* U+006E 'n' */
-    "RdX[V[TYSWRTSQTOVMXMZM]O^Q^T^W]YZ[X[", /* U+006F 'o' */
-    "RdRbRM RRPTNUMXM[M]O^R_T^V]Y[ZX[V[SZRX", /* U+0070 'p' */
-    "Rd_b_M R_P]N[MXMVMTORRRTRVTYV[X[[[]Z_X", /* U+0071 'q' */
-    "RbR[RM RRPTNVMXMZM\\N", /* U+0072 'r' */
-    "RbRYTZV[X[[Z\\Y]X\\V[UUSSPTNUMWMYM\\N", /* U+0073 's' */
-    "RbWFW[ RRM\\M", /* U+0074 't' */
-    "RdRMRWTYV[X[[[]Y^W R^[^M", /* U+0075 'u' */
-    "RdRMX[_M", /* U+0076 'v' */
-    "RiRMV[[M_[dM", /* U+0077 'w' */
-    "RbRM][ R]MR[", /* U+0078 'x' */
-    "RcNaPbSaU`V^YY]M RRMYY", /* U+0079 'y' */
-    "RbRM\\MR[\\[", /* U+007A 'z' */
-    "Rb]bYbU_UVRTURUIYF]F", /* U+007B '{' */
-    "RXRbRF", /* U+007C '|' */
-    "RbRbUbY_YV]TYRYIUFRF", /* U+007D '}' */
-    "RmRTVMYM`[d[gT", /* U+007E '~' */
+    "Rg", /* U+0020 */
+    "Rg\\F\\[ R\\^]^^`^a]b\\b[a[`\\^", /* U+0021 '!' */
+    "RgYK[F R`F^K", /* U+0022 '"' */
+    "RgUb\\F RdF\\b RRXgX RgQRQ", /* U+0023 '#' */
+    "RgRYR[U^d^g[gXdTUTRQRMUIdIgMgO R`F`b RYbYF", /* U+0024 '$' */
+    "RgV\\cF RVFTGSHRJSLTMVNXMYLZJYHXGVF RcTaU`V_X`Za[c\\e[fZgXfVeUcT", /* U+0025 '%' */
+    "RggbUMUIYF\\F`I`M\\QUTRXR^Ub`bg[", /* U+0026 '&' */
+    "Rg\\M`I`F]F]I`I", /* U+0027 '\'' */
+    "Rg[bW^U[UMWI[F", /* U+0028 '(' */
+    "Rg^bb^d[dMbI^F", /* U+0029 ')' */
+    "RgU\\dL R\\I\\^ Rd\\UL RRTgT", /* U+002A '*' */
+    "RgYTaT R\\O\\Y", /* U+002B '+' */
+    "Rg\\_]Z", /* U+002C ',' */
+    "RgXTaT", /* U+002D '-' */
+    "Rg\\\\\\[\\[\\Z][][\\\\", /* U+002E '.' */
+    "RgV\\cF", /* U+002F '/' */
+    "Rg\\FZGXHVKUMUQUTVVXYZZ\\[_ZaYcVdTdQdMcKaH_G\\F", /* U+0030 '0' */
+    "Rg\\[\\FXJ RX[a[", /* U+0031 '1' */
+    "RgVIXGZF]FaGcHdKdMbN[RXTVXU[d[", /* U+0032 '2' */
+    "RgUWWYZ[][`[bYdWeUdRaQ_P\\P R_PaOcMdKcIaG^F[FXH", /* U+0033 '3' */
+    "Rga[aFTUeU", /* U+0034 '4' */
+    "RgUXWZY[\\[`ZbYdVdTdQbO_N]MZNWOXFbF", /* U+0035 '5' */
+    "RgVRXPZN]N`NaPcRcTcVaY_Z][ZZXXVUVRWMXKYH\\F^FaGbH", /* U+0036 '6' */
+    "Rg\\[\\V^S_OaKdFUF", /* U+0037 '7' */
+    "Rg\\[_[bZdXdUdSaQ^P[PYOWMVKWHZG\\F_GbHcKbM`O^P[PXQUSUUUXWZZ[\\[", /* U+0038 '8' */
+    "RgWYYZ\\[_ZaXcUdRdNcKaH_G\\FZGXHVJUMVOXRZS\\T_SaQdN", /* U+0039 '9' */
+    "Rg\\\\\\[\\[\\Z][][\\\\ R\\R\\R\\Q\\Q]Q]R\\R", /* U+003A ':' */
+    "RgZa_\\_XZXZ\\_\\ R_T_OZOZT_T", /* U+003B ';' */
+    "Rgd[UTdM", /* U+003C '<' */
+    "RgXWaW RaQXQ", /* U+003D '=' */
+    "RgU[dTUM", /* U+003E '>' */
+    "Rg\\\\\\[\\[\\Z][][\\\\ R\\W\\R]P_N`MaLaJ`H_G\\F[FYGXI", /* U+003F '?' */
+    "RgbX^[[[WXWQ[M^MbQbXdZgXgIdFUFRIR^Ubdbg^", /* U+0040 '@' */
+    "RgT[\\Fe[ RbTWT", /* U+0041 'A' */
+    "Rg_PaObMbKbH`G^FTFT[`[bZdXeUdSbQ_PTP", /* U+0042 'B' */
+    "RgdHbG`F]FZGWIUKTNTRTUUWXYZZ\\[_[aZdYeX", /* U+0043 'C' */
+    "RgU[UF\\F_GaHbKdMdQdTbVaY_Z\\[U[", /* U+0044 'D' */
+    "Rgd[U[UFdF R^PUP", /* U+0045 'E' */
+    "RgV[VFcF R^PVP", /* U+0046 'F' */
+    "Rg_QfQfWdYaZ^[ZZXYUWTTSRSOTMUKXHZG\\F_FbGdH", /* U+0047 'G' */
+    "RgU[UF RdFd[ RdQUQ", /* U+0048 'H' */
+    "RgXFaF R\\F\\[ RX[a[", /* U+0049 'I' */
+    "RgUWWYYZ\\[_ZaYcWdTdF", /* U+004A 'J' */
+    "RgU[UF RbFUS Rd[[M", /* U+004B 'K' */
+    "RgUFU[d[", /* U+004C 'L' */
+    "RgS[SF\\XfFf[", /* U+004D 'M' */
+    "RgT[TFe[eF", /* U+004E 'N' */
+    "Rg\\[Z[WYUWTUSRSOTLUJWHZF\\F_FbHdJeLfOfReUdWbY_[\\[", /* U+004F 'O' */
+    "RgU[UF^FaGcIdLcOaQ^RUR", /* U+0050 'P' */
+    "Rg\\[Z[WYUWTUSRSOTLUJWHZF\\F_FbHdJeLfOfReUdWbY_[\\[ R_Ud[", /* U+0051 'Q' */
+    "RgU[UF^FaGcHdKcNaP^QUQ R^Qd[", /* U+0052 'R' */
+    "RgUXXZ[[^[aZcXdVcSaQ^PZOXNWKWIYG[F^F`GbH", /* U+0053 'S' */
+    "Rg\\F\\[ RTFeF", /* U+0054 'T' */
+    "RgUFUUVXYZ\\[`ZcXdUdF", /* U+0055 'U' */
+    "RgTF\\[eF", /* U+0056 'V' */
+    "RgRFW[\\Fb[gF", /* U+0057 'W' */
+    "RgU[dF RUFd[", /* U+0058 'X' */
+    "Rg\\[\\RUF RdF\\R", /* U+0059 'Y' */
+    "RgVFcFV[c[", /* U+005A 'Z' */
+    "Rg`FYFYb`b", /* U+005B '[' */
+    "RgRFgb", /* U+005C '\\' */
+    "RgYb`b`FYF", /* U+005D ']' */
+    "RgUT\\FdT R\\F\\b", /* U+005E '^' */
+    "RgRbgb", /* U+005F '_' */
+    "Rg]MYIYF\\F\\IYI", /* U+0060 '`' */
+    "Rgc[cM RcOaN_M]MZNXOWQVTWWXYZZ][_[aZcX", /* U+0061 'a' */
+    "RgV[VF RVQXNZM\\M_NaOcRcTbWaY^[\\[Z[XZVX", /* U+0062 'b' */
+    "RgbO`M^M[NYOWRWTWVYY[Z^[`ZbY", /* U+0063 'c' */
+    "RgcFc[ RcXaZ_[][ZZXYWVVTWRXOZN]M_MaNcO", /* U+0064 'd' */
+    "RgWRbRaO`N]M[MYNWQWSWUWWYY[[^[`ZbX", /* U+0065 'e' */
+    "RgZ[ZI[G\\F_FaGbH R^NWN", /* U+0066 'f' */
+    "RgX`Zb]b_ba`c]cM RcPaN_M]MZNXOWRVTWVXYZZ][_[aYcX", /* U+0067 'g' */
+    "RgW[WF RWPXNZM]M_MaObQb[", /* U+0068 'h' */
+    "Rg\\M\\[ R\\G\\G\\F\\F]F]G\\G", /* U+0069 'i' */
+    "RgW`Yb[b^a``a\\aM RaGaGaFaFbFbGaG", /* U+006A 'j' */
+    "RgW[WF RbMWU R[Rb[", /* U+006B 'k' */
+    "Rg\\[\\F", /* U+006C 'l' */
+    "RgR[RM RRQSOUNWMZN[O\\Q\\[ R\\Q^O_NbMdNfOgQg[", /* U+006D 'm' */
+    "RgW[WM RWQXOZM]M_MaObQb[", /* U+006E 'n' */
+    "Rg\\[Z[XYWWVTWQXOZM\\M_MaObQbTbWaY_[\\[", /* U+006F 'o' */
+    "RgVbVM RVPXNZM\\M_MaObRcTbVaY_Z\\[Z[XZVX", /* U+0070 'p' */
+    "RgcbcM RcPaN_M\\MZMXOWRVTWVXYZ[\\[_[aZcX", /* U+0071 'q' */
+    "RgX[XM RXPYN[M^M_MaN", /* U+0072 'r' */
+    "RgWYYZ[[^[`ZaYbXaV`UZSXPYNZM\\M_MaN", /* U+0073 's' */
+    "Rg\\F\\[ RXMaM", /* U+0074 't' */
+    "RgWMWWXYZ[\\[_[aYbW Rb[bM", /* U+0075 'u' */
+    "RgVM\\[cM", /* U+0076 'v' */
+    "RgTMX[\\Ma[eM", /* U+0077 'w' */
+    "RgWMb[ RbMW[", /* U+0078 'x' */
+    "RgUaWbZa\\`]^_YdM RYM_Y", /* U+0079 'y' */
+    "RgWMbMW[b[", /* U+007A 'z' */
+    "Rg`b\\bY^YVUTYRYI\\F`F", /* U+007B '{' */
+    "Rg\\b\\F", /* U+007C '|' */
+    "RgYb\\b`^`VdT`R`I\\FYF", /* U+007D '}' */
+    "RgRTUMYM`[d[gT", /* U+007E '~' */
     "RR", /* U+007F */
     "RR", /* U+0080 */
     "RR", /* U+0081 */
